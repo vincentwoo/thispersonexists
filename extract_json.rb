@@ -5,8 +5,8 @@ require 'pp'
 
 json = JSON.parse(File.open('ffhq-dataset-v2.json').read)
 
-skip_to_idx = 2737 # 0
-written_idx = 2541 # 0
+skip_to_idx = 10279 # 0
+written_idx = 9555 # 0
 
 json.each.with_index do |(key, image), idx|
   next if idx < skip_to_idx
