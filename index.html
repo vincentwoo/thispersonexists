@@ -1,9 +1,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>This Person Does Exist</title>
+    <title>This Person Exists</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="This Person Does Exist">
+    <meta name="description" content="This Person Exists">
     <style>
       body {
         -webkit-transition: 3s -webkit-filter linear;
@@ -47,14 +47,6 @@
       #description p {
         padding: 0;
         margin: 0
-      }
-
-      #description .hide {
-        display: none
-      }
-
-      #description:hover .hide {
-        display: block
       }
 
       #description.show {
@@ -148,10 +140,10 @@
       </p>
     </div>
     <script type="text/javascript">
+      var canvas = document.getElementById('face')
+      var ctx = canvas.getContext('2d')
       function loadFace() {
-        var faceId = Math.floor(Math.random() * Math.floor(28686))
-        var canvas = document.getElementById('face')
-        var ctx = canvas.getContext('2d')
+        var faceId = Math.floor(Math.random() * Math.floor(30000))
         fetch('data/' + faceId + '.json').then(function(response) {
           response.json().then(function(data) {
             console.log(data)
@@ -181,7 +173,7 @@
       loadFace();
       document.getElementById('another').onclick = loadFace;
       document.getElementById('close').onclick = function() {
-        document.getElementById("description").className = 'hide'
+        document.getElementById("description").className = ''
       }
 
       setTimeout(function() {
