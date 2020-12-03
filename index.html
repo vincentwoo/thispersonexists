@@ -1,0 +1,191 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>This Person Does Exist</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="This Person Does Exist">
+    <style>
+      body {
+        -webkit-transition: 3s -webkit-filter linear;
+        -moz-transition: 3s -moz-filter linear;
+        -moz-transition: 3s filter linear;
+        -ms-transition: 3s -ms-filter linear;
+        -o-transition: 3s -o-filter linear;
+        transition: 3s filter linear, 3s -webkit-filter linear;
+        filter: grayscale(0)
+      }
+
+      body,
+      html {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #000;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        font-family: Arial;
+        font-size: .9em;
+        overflow-x: hidden;
+        transition: background-color .5s ease
+      }
+
+      #description {
+        box-sizing: border-box;
+        position: absolute;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        transition: all .5s ease 0s;
+        padding: 5px 8px;
+        bottom: 5px;
+        opacity: 0;
+        right: -500px
+      }
+
+      #description p {
+        padding: 0;
+        margin: 0
+      }
+
+      #description .hide {
+        display: none
+      }
+
+      #description:hover .hide {
+        display: block
+      }
+
+      #description.show {
+        opacity: .7;
+        right: 5px
+      }
+
+      #description.show:hover {
+        opacity: 1
+      }
+
+      #description a {
+        color: #00f;
+        cursor: pointer
+      }
+
+      #description a:hover {
+        text-decoration: underline
+      }
+
+      @media only screen and (max-width:600px) {
+        #description {
+          width: 100%;
+          font-size: .8em;
+          padding: 5px 15px
+        }
+      }
+
+      #face {
+        max-width: 100%;
+        max-height: 100%;
+        text-align: center;
+        box-shadow: 0 0 5px rgba(10, 10, 10, .8)
+      }
+
+      a {
+        text-decoration: none
+      }
+
+      a:hover {
+        text-decoration: underline
+      }
+
+      .close {
+        position: absolute;
+        right: 10px;
+        bottom: 5px;
+        width: 16px;
+        height: 16px;
+        opacity: .3
+      }
+
+      .close:hover {
+        opacity: 1
+      }
+
+      .close:after,
+      .close:before {
+        position: absolute;
+        left: 15px;
+        content: ' ';
+        height: 13px;
+        width: 2px;
+        background-color: #333
+      }
+
+      .close:before {
+        transform: rotate(45deg)
+      }
+
+      .close:after {
+        transform: rotate(-45deg)
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="face"></canvas>
+    <div id="description">
+      <p>
+        These humans exist. They have been used to train <br>
+        Nvidia's <a href="https://github.com/NVlabs/stylegan">StyleGan</a>
+        and serve as the raw <br>
+        material of <a href="https://thispersondoesnotexist.com">thispersondoesnotexist.com</a>.
+      </p>
+      <p>This <a href="#" id="linkback">particular photo</a> was taken by <span id="author"></span>.</p>
+      <p>It is released under a Creative Commons license.</p>
+      <p>
+        <a id="another" title="Request another photo">Another</a>
+        <a id="close" class="close"></a>
+      </p>
+    </div>
+    <script type="text/javascript">
+      function loadFace() {
+        var faceId = Math.floor(Math.random() * Math.floor(5000))
+        var canvas = document.getElementById('face')
+        var ctx = canvas.getContext('2d')
+        fetch('data/' + faceId + '.json').then(function(response) {
+          response.json().then(function(data) {
+            console.log(data)
+            var x = data.face_rect[0]
+            var y = data.face_rect[1]
+            var width = data.face_rect[2] - x
+            var height = data.face_rect[3] - y
+            var side = Math.min(width, height)
+            document.getElementById('author').textContent = data.author
+            document.getElementById('linkback').href = data.flickr_url
+
+            var pad = side * 0.7
+            side += pad
+            x -= pad * 0.5
+            y -= pad * 0.7
+            const image = new Image()
+
+            image.onload = function() {
+              ctx.canvas.width = side
+              ctx.canvas.height = side
+              ctx.drawImage(image, x, y, side, side, 0, 0, side, side)
+            }
+            image.src = data.photo_url
+          })
+        })
+      }
+      loadFace();
+      document.getElementById('another').onclick = loadFace;
+      document.getElementById('close').onclick = function() {
+        document.getElementById("description").className = 'hide'
+      }
+
+      setTimeout(function() {
+        document.getElementById("description").className = 'show'
+      }, 5500)
+    </script>
+  </body>
+</html>
