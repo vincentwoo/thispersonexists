@@ -148,7 +148,7 @@
       var canvas = document.getElementById('face')
       var ctx = canvas.getContext('2d')
       function loadFace() {
-        var faceId = Math.floor(Math.random() * Math.floor(30000))
+        var faceId = Math.floor(Math.random() * Math.floor(65212))
         fetch('data/' + faceId + '.json').then(function(response) {
           response.json().then(function(data) {
             console.log(data)
