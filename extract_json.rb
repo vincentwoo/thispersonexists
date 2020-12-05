@@ -3,10 +3,10 @@ require 'dotenv/load'
 require 'http'
 require 'pp'
 
-json = JSON.parse(File.open('ffhq-dataset-v2.json').read)
+json = JSON.parse(File.read('ffhq-dataset-v2.json'))
 
-skip_to_idx = 10279 # 0
-written_idx = 9555 # 0
+skip_to_idx = 0
+written_idx = 0
 
 json.each.with_index do |(key, image), idx|
   next if idx < skip_to_idx
@@ -28,16 +28,13 @@ json.each.with_index do |(key, image), idx|
     response = JSON.parse(response.to_s)
     size = response['sizes']['size'].find { |size| [size['width'], size['height']] == dimensions }
 
-    File.open("data/#{written_idx}.json", 'w') do |f|
-      f.write(
-        {
-          flickr_url: flickr_url,
-          photo_url: size['source'],
-          author: image['metadata']['author'],
-          face_rect: image['in_the_wild']['face_rect']
-        }.to_json
-      )
-    end
+    File.write("data/#{written_idx}.json", {
+      flickr_url: flickr_url,
+      photo_url: size['source'],
+      author: image['metadata']['author'],
+      # face_rect: image['in_the_wild']['face_rect'],
+      face_quad: image['in_the_wild']['face_quad']
+    }.to_json)
     written_idx += 1
   rescue
     # pass

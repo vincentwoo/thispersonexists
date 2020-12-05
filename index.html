@@ -148,33 +148,58 @@
       var canvas = document.getElementById('face')
       var ctx = canvas.getContext('2d')
       function loadFace() {
-        var faceId = Math.floor(Math.random() * Math.floor(65212))
+        var faceId = Math.floor(Math.random() * Math.floor(65212)) // 6
         fetch('data/' + faceId + '.json').then(function(response) {
           response.json().then(function(data) {
-            console.log(data)
-            var x = data.face_rect[0]
-            var y = data.face_rect[1]
-            var width = data.face_rect[2] - x
-            var height = data.face_rect[3] - y
-            var side = Math.min(width, height)
             document.getElementById('author').textContent = data.author
             document.getElementById('linkback').href = data.flickr_url
-
-            var pad = side * 0.7
-            side += pad
-            x -= pad * 0.5
-            y -= pad * 0.7
             const image = new Image()
 
             image.onload = function() {
+              var quad = data.face_quad
+              var center = quad.reduce(function(center, pt) {
+                center[0] += pt[0] / 4
+                center[1] += pt[1] / 4
+                return center
+              }, [0, 0])
+              var theta = Math.atan2(quad[3][1] - quad[0][1], quad[3][0] - quad[0][0])
+              var bufferCanvas = document.createElement('canvas')
+              var bufferCtx = bufferCanvas.getContext('2d')
+
+              bufferCtx.canvas.width = image.width
+              bufferCtx.canvas.height = image.height
+              bufferCtx.save()
+              bufferCtx.translate(center[0], center[1])
+              bufferCtx.rotate(-theta)
+              bufferCtx.translate(-center[0], -center[1])
+              var matrix = bufferCtx.getTransform()
+
+              bufferCtx.beginPath()
+              bufferCtx.moveTo(quad[0][0], quad[0][1])
+              bufferCtx.lineTo(quad[1][0], quad[1][1])
+              bufferCtx.lineTo(quad[2][0], quad[2][1])
+              bufferCtx.lineTo(quad[3][0], quad[3][1])
+              bufferCtx.clip()
+              bufferCtx.drawImage(image, 0, 0)
+
+              quad = quad.map(function(pt) { return transformPoint(pt, matrix) })
+              var x = quad[0][0]
+              var y = quad[0][1]
+              var side = Math.floor(quad[2][0] - x)
               ctx.canvas.width = side
               ctx.canvas.height = side
-              ctx.drawImage(image, x, y, side, side, 0, 0, side, side)
+              ctx.drawImage(bufferCanvas, x, y, side, side, 0, 0, side, side)
             }
             image.src = data.photo_url
           })
         })
       }
+
+      function transformPoint(point, matrix) {
+        return [matrix.a * point[0] + matrix.c * point[1] + matrix.e,
+          matrix.b * point[0] + matrix.d * point[1] + matrix.f]
+      }
+
       loadFace()
       document.getElementById('another').onclick = loadFace
       document.getElementById('close').onclick = function() {
@@ -183,7 +208,7 @@
 
       setTimeout(function() {
         document.getElementById('description').className = 'show'
-      }, 5500)
+      }, 5000)
     </script>
   </body>
 </html>
