@@ -32,7 +32,6 @@ json.each.with_index do |(key, image), idx|
       flickr_url: flickr_url,
       photo_url: size['source'],
       author: image['metadata']['author'],
-      # face_rect: image['in_the_wild']['face_rect'],
       face_quad: image['in_the_wild']['face_quad']
     }.to_json)
     written_idx += 1
