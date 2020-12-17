@@ -106,7 +106,7 @@
       .close:before {
         position: absolute;
         left: 15px;
-        content: ' ';
+        content: " ";
         height: 13px;
         width: 2px;
         background-color: #333;
@@ -126,9 +126,13 @@
     <div id="description">
       <p>
         These humans exist. They have been used to train <br />
-        Nvidia's <a href="https://github.com/NVlabs/stylegan">StyleGan</a> and serve as the raw
+        Nvidia's <a href="https://github.com/NVlabs/stylegan">StyleGan</a> and
+        serve as the raw
         <br />
-        material of <a href="https://thispersondoesnotexist.com">thispersondoesnotexist.com</a>.
+        material of
+        <a href="https://thispersondoesnotexist.com"
+          >thispersondoesnotexist.com</a
+        >.
       </p>
       <p>
         This <a href="#" id="linkback">particular photo</a> was taken by<br />
@@ -137,7 +141,8 @@
       <p>It is released under a Creative Commons license.</p>
       <p>
         <a href="mailto:me@vincentwoo.com">Contact me</a> or view the
-        <a href="https://github.com/vincentwoo/thispersonexists">source code</a> for this website.
+        <a href="https://github.com/vincentwoo/thispersonexists">source code</a>
+        for this website.
       </p>
       <p>
         <a id="another" title="Request another photo">Another</a>
@@ -145,70 +150,92 @@
       </p>
     </div>
     <script type="text/javascript">
-      var canvas = document.getElementById('face')
-      var ctx = canvas.getContext('2d')
-      function loadFace() {
-        var faceId = Math.floor(Math.random() * Math.floor(65212)) // 6
-        fetch('data/' + faceId + '.json').then(function(response) {
-          response.json().then(function(data) {
-            document.getElementById('author').textContent = data.author
-            document.getElementById('linkback').href = data.flickr_url
-            const image = new Image()
+      var canvas = document.getElementById("face");
+      var ctx = canvas.getContext("2d");
 
-            image.onload = function() {
-              var quad = data.face_quad
-              var center = quad.reduce(function(center, pt) {
-                center[0] += pt[0] / 4
-                center[1] += pt[1] / 4
-                return center
-              }, [0, 0])
-              var theta = Math.atan2(quad[3][1] - quad[0][1], quad[3][0] - quad[0][0])
-              var bufferCanvas = document.createElement('canvas')
-              var bufferCtx = bufferCanvas.getContext('2d')
-
-              bufferCtx.canvas.width = image.width
-              bufferCtx.canvas.height = image.height
-              bufferCtx.save()
-              bufferCtx.translate(center[0], center[1])
-              bufferCtx.rotate(-theta)
-              bufferCtx.translate(-center[0], -center[1])
-              var matrix = bufferCtx.getTransform()
-
-              bufferCtx.beginPath()
-              bufferCtx.moveTo(quad[0][0], quad[0][1])
-              bufferCtx.lineTo(quad[1][0], quad[1][1])
-              bufferCtx.lineTo(quad[2][0], quad[2][1])
-              bufferCtx.lineTo(quad[3][0], quad[3][1])
-              bufferCtx.clip()
-              bufferCtx.drawImage(image, 0, 0)
-
-              quad = quad.map(function(pt) { return transformPoint(pt, matrix) })
-              var x = quad[0][0]
-              var y = quad[0][1]
-              var side = Math.floor(quad[2][0] - x)
-              ctx.canvas.width = side
-              ctx.canvas.height = side
-              ctx.drawImage(bufferCanvas, x, y, side, side, 0, 0, side, side)
-            }
-            image.src = data.photo_url
+      function preloadFace() {
+        var faceId = Math.floor(Math.random() * Math.floor(65212));
+        return fetch("data/" + faceId + ".json").then(function(response) {
+          return response.json()
+        }).then(function(response) {
+          response.image = new Image()
+          response.image.src = response.photo_url
+          return new Promise(function(resolve) {
+            response.image.onload = function() { resolve(response) }
           })
         })
       }
 
-      function transformPoint(point, matrix) {
-        return [matrix.a * point[0] + matrix.c * point[1] + matrix.e,
-          matrix.b * point[0] + matrix.d * point[1] + matrix.f]
+      function renderFace(response) {
+        const image = response.image
+        document.getElementById("author").textContent = response.author;
+        document.getElementById("linkback").href = response.flickr_url;
+
+        var quad = response.face_quad;
+        var center = quad.reduce(
+          function(center, pt) {
+            center[0] += pt[0] / 4;
+            center[1] += pt[1] / 4;
+            return center;
+          },
+          [0, 0]
+        );
+        var theta = Math.atan2(
+          quad[3][1] - quad[0][1],
+          quad[3][0] - quad[0][0]
+        );
+        var bufferCanvas = document.createElement("canvas");
+        var bufferCtx = bufferCanvas.getContext("2d");
+
+        bufferCtx.canvas.width = image.width;
+        bufferCtx.canvas.height = image.height;
+        bufferCtx.save();
+        bufferCtx.translate(center[0], center[1]);
+        bufferCtx.rotate(-theta);
+        bufferCtx.translate(-center[0], -center[1]);
+        var matrix = bufferCtx.getTransform();
+
+        bufferCtx.beginPath();
+        bufferCtx.moveTo(quad[0][0], quad[0][1]);
+        bufferCtx.lineTo(quad[1][0], quad[1][1]);
+        bufferCtx.lineTo(quad[2][0], quad[2][1]);
+        bufferCtx.lineTo(quad[3][0], quad[3][1]);
+        bufferCtx.clip();
+        bufferCtx.drawImage(image, 0, 0);
+
+        quad = quad.map(function(pt) {
+          return transformPoint(pt, matrix);
+        });
+        var x = quad[0][0];
+        var y = quad[0][1];
+        var side = Math.floor(quad[2][0] - x);
+        ctx.canvas.width = side;
+        ctx.canvas.height = side;
+        ctx.drawImage(bufferCanvas, x, y, side, side, 0, 0, side, side);
       }
 
-      loadFace()
-      document.getElementById('another').onclick = loadFace
-      document.getElementById('close').onclick = function() {
-        document.getElementById('description').className = ''
+      function transformPoint(point, matrix) {
+        return [
+          matrix.a * point[0] + matrix.c * point[1] + matrix.e,
+          matrix.b * point[0] + matrix.d * point[1] + matrix.f,
+        ];
       }
+
+      preloadFace().then(function(response) { renderFace(response) });
+      let bufferedFace = preloadFace()
+      document.getElementById("another").onclick = function() {
+        bufferedFace.then(function(response) {
+          renderFace(response)
+          bufferedFace = preloadFace()
+        })
+      }
+      document.getElementById("close").onclick = function() {
+        document.getElementById("description").className = "";
+      };
 
       setTimeout(function() {
-        document.getElementById('description').className = 'show'
-      }, 3000)
+        document.getElementById("description").className = "show";
+      }, 3000);
     </script>
   </body>
 </html>
