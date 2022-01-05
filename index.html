@@ -168,6 +168,7 @@
           response.image.src = response.photo_url
           return new Promise(function(resolve) {
             response.image.onload = function() { resolve(response) }
+            response.image.onerror = function() { resolve(preloadFace()) }
           })
         })
       }
